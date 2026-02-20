@@ -1,41 +1,58 @@
 require 'date'
 
 module Review
-    class People
+  class People # Consider rename to Person, a class semantically represents a model or entity so it should always be singular noun
+    # Few things to change here:
+    # 1. variable name @under_16 suggest boolean type which is wrong, rename it to something like `default_dob` to reflect its value type
+    # 2. class instance variable is evaluated once at class load time which mean its value will get stale in a long running process. Consider using a method to dynamically calculate dob instead
+    # 3. Consider Date instead of DateTime to calculate dob since dob generally doesn't care about time.
+
     @under_16 = DateTime.now - (15 * 365)
 
     class << self
+      # 4. In relation to comment #2, calculate default_dob here, something like:
+      # def under_16
+      #   Date.today - (15 * 365)
+      # end
       def under_16
         @under_16
       end
 
-      private :under_16
+      private :under_16 # 5. this method is not a helper, so no need to make it private
     end
 
     attr_reader :name, :dob
 
     def initialize(name, dob = nil)
+      # 6. this if condition can be removed. See comment #8
       if dob.nil?
+        # 7. calling send on private method is generally a code smell since it bypasses visibility
+        # make under_16 public as suggested in comment #5 then it can just be self.class.under_16
         dob = self.class.send(:under_16)
       end
       @name = name
-      @dob = dob
+      @dob = dob # 8. In addition to comment #6, this line can be done as conditional assignment ie @dob = dob || self.class.under_16
     end
   end
 
   class BirthingUnit
+    # 9. This comment seems irrelevant, consider removing it.
     # MaxItemsToRetrieve
     def initialize
       @people = []
     end
 
+    # 10. Below comments don't match method signature
     # GetPeoples
     # @param j
     # @return Array<Object>
     def get_people(i)
-      i.times do |j|
+      i.times do |j| # 11. variable j is unused, no need to yield it 
         begin
+          # 12. Spelling error, should be `Creates a random name` ? 
           # Creates a dandon Name
+          # 13. This randomizer can be simplified as follow
+          # name = ['Bob', 'Betty'].sample
           name = ""
           if rand(0..1) == 0
             name = "Bob"
@@ -43,7 +60,11 @@ module Review
             name = "Betty"
           end
           # Adds new people to the list
+          # 14. Similar to comment #3, use Date to calculate dob instead of DateTime
           @people << People.new(name, DateTime.now - (rand(18..85) * 356))
+        # 15. Need to properly handle exception here. `raise` will terminate method immediately without returning anything
+        # Better approach is logging the exception somewhere for debugging eg (stdout), then returning the people list
+        # If this method is intended to raise exception regardless, rename it to `get_people!` as it is idomatic ruby.
         rescue => e
           # Dont think this should ever happen
           raise "Something failed in user creation"
@@ -54,20 +75,36 @@ module Review
 
     private
 
-    def get_bobs(older_than_30)
+    # 16. This method is specifically checking for someone named Bob, can it be refactored to accomodate for different people?
+    def get_bobs(older_than_30) 
       older_than_30 ? @people.select { |x| x.name == "Bob" && x.dob >= (DateTime.now - (30 * 356)) } : @people.select { |x| x.name == "Bob" }
     end
 
-    public
-
-    def get_married(p, last_name)
+    public # 17. ruby method is public by default, move all public methods before private then you don't need to declare public.
+    
+    # 18. method name is cryptic. Should it be `get_married_name(...)` ?
+    def get_married(p, last_name) # 19. avoid using single character to represent an object instance, `def get_married(person, last_name)` is more readable
       return p.name if last_name.include?("test")
-      
-      if (p.name.length + last_name).length > 255
+
+      if (p.name.length + last_name).length > 255 # 20. (p.name.length + last_name) will yield TypeError
         (p.name + " " + last_name)[0, 255]
       end
 
-      p.name + " " + last_name 
+      p.name + " " + last_name # 21. String interpolation is much nicer ie "#{p.name} #{last_name}"
     end
   end
 end
+
+# General thoughts
+#
+# Comments around the usage of class instance variable ie #1 and #2 are the most concerning because it can introduce unexpected bug in long running process eg rake task or rails process
+# Consider separating People and BirthingUnit classess into two separate files for easier maintainability.
+# Additionally, most of this code doesn't follow idomatic ruby style so it presents both readability and maintainability issues.
+
+# Follow up questions
+#
+# The above code lacks sufficient context to fully understand what the usages are. A few questions to follow up with the author:
+#
+# 1. Why is @under_16 value 15 years from today, can it be any date between now and 15 years ago.
+# 2. Any specs for this code, particularly feature spec to show how the code is used?
+# 3. Some documentation to back up this code. It would help me to understand its context
