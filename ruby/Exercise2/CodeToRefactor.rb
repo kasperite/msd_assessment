@@ -1,7 +1,7 @@
 require 'date'
 
 module Review
-    class People
+  class People
     @under_16 = DateTime.now - (15 * 365)
 
     class << self
@@ -63,7 +63,7 @@ module Review
     def get_married(p, last_name)
       return p.name if last_name.include?("test")
       
-      if (p.name.length + last_name).length > 255
+      if (p.name + last_name).length > 255
         (p.name + " " + last_name)[0, 255]
       end
 
