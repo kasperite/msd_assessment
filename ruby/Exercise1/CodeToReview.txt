@@ -60,7 +60,7 @@ module Review
             name = "Betty"
           end
           # Adds new people to the list
-          # 14. Similar to comment #3, use Date to calculate dob instead of DateTime
+          # 14. Similar to comment #3, use Date to calculate dob instead of DateTime. Also it should be 365 days not 356 days
           @people << People.new(name, DateTime.now - (rand(18..85) * 356))
         # 15. Need to properly handle exception here. `raise` will terminate method immediately without returning anything
         # Better approach is logging the exception somewhere for debugging eg (stdout), then returning the people list
@@ -75,7 +75,10 @@ module Review
 
     private
 
-    # 16. This method is specifically checking for someone named Bob, can it be refactored to accomodate for different people?
+    # 16. This method is specifically checking for someone named Bob. Few questions:
+    # - Any reason why this method is private? It's not used anywhere in this class so it is probably fine to make it public
+    # - This method is checking values that are dependent on #get_people output. It's a code smell because if #get_people is updated in the future, we will need to change this method as well.
+    # Can it be refactored to accomodate for different people?
     def get_bobs(older_than_30) 
       older_than_30 ? @people.select { |x| x.name == "Bob" && x.dob >= (DateTime.now - (30 * 356)) } : @people.select { |x| x.name == "Bob" }
     end
@@ -86,7 +89,8 @@ module Review
     def get_married(p, last_name) # 19. avoid using single character to represent an object instance, `def get_married(person, last_name)` is more readable
       return p.name if last_name.include?("test")
 
-      if (p.name.length + last_name).length > 255 # 20. (p.name.length + last_name) will yield TypeError
+      # 20. (p.name.length + last_name) will yield TypeError. Character length check is also redundant
+      if (p.name.length + last_name).length > 255
         (p.name + " " + last_name)[0, 255]
       end
 
