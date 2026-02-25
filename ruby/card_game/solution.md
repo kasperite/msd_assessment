@@ -1,14 +1,14 @@
 # Solution
 
-The current architecture is designed to model various types of card games, though its abstractions are somewhat constrained due to minimal requirements.
+The current solution is designed to model various types of card games, though its abstractions are somewhat constrained due to minimal requirements. These models should be able to 
 
-## Entities
+## Data Models
 
-All the classes that represent card game. All entities are covered by initial tests in `spec` folder. Run `bundle exec rspec` to verify they are green. 
+All classes representing card game are in `entities` folder. All entities are covered by initial tests in `spec` folder. Run `bundle exec rspec` to verify they are green. 
 
 **Deck**
 
-`Deck` models generic deck of cards with common method such as `shuffle!`. An example of child class `FrenchDeck` is modelled after French-suited playing cards, specifically represent 52 deck cards. 
+`Deck` models generic deck of cards with common method such as `shuffle!`. An example of child class `FrenchDeck` is based on most popular French-suited playing cards ie 52 deck cards. 
 
 **Player**
 
@@ -42,8 +42,3 @@ Generic game rule that is meant to be extended into specific game rule. Game rul
       ````
 
     - Online: More effort involves and likely requires tool such as capistrano to deploy the game to server. Next decision to make is whether the game needs websocket or simple http for communication.
-
-
-## Final thoughts
-
-There are so many card games and current structure cannot represent them all. All models are designed with extensibility in mind though. 
